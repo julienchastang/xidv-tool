@@ -1,4 +1,4 @@
-(ns xidv-tool.xidv
+(ns xidv-tool.xidv-grep
   (:require
    [xidv-tool.util :as u]
    [clojure.java.io :as io]
@@ -27,6 +27,7 @@
 
 (def links (grep "http:" my-files))
 
-(spit "/tmp/foo" (apply str (map #(str % "\n") links)))
 
-(spit "/tmp/foo" (apply str (map #(str % "\n") data-files)))
+;; (spit "/tmp/foo" (apply str (map #(str % "\n") data-files)))
+
+(spit "/tmp/foo" (apply str (map #(str % "\n") links)))
