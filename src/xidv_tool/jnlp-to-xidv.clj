@@ -14,7 +14,7 @@
 (def b64rx #"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")
 
 (defn b64
-  "Extract the Base 64 String from the JNLP file"
+  "Extract the Base 64 String from the XML path"
   [zip]
   (let [candidates
         (map zip/node
@@ -24,20 +24,26 @@
         (map #(s/replace % #"\n" "") candidates)]
     (first (filter #(re-matches b64rx %) c-wo-eol))))
 
-(defn jnlp-to-xidv [dir]
-  "convert jnlps to xidvs in the dir directory"
-  (doseq [f  (u/list-files dir "jnlp")]
+(defn process [config]
+  "convert jnlps to xidvs"
+  (doseq [f  (u/list-files (:in-dir config) (:file-ext-in config))]
     (let [x (-> f io/input-stream xml/parse zip/xml-zip) 
           o (first (s/split (.getName f) #"[.]"))
           b (b64 x)
           s (try
               (String. (.decode (Base64/getDecoder) b) "utf-8")
               (catch Exception e (str (.getMessage e))))
-          xidv (str input-directory (java.io.File/separator) o ".xidv" )]
+          xidv (str (:out-dir config)
+                    (java.io.File/separator) o "."(:file-ext-out config))]
       (spit xidv (u/ppxml s)))))
+
 
 ;; for example
 
-(def input-directory "/Users/chastang/Desktop/jnlps")
+(def my-config
+  {:in-dir "/Users/chastang/Desktop/jnlps/"
+   :out-dir "/tmp/xidvs/"
+   :file-ext-in "jnlp"
+   :file-ext-out "xidv"})
 
-(jnlp-to-xidv input-directory)
+(process my-config)
