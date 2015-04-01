@@ -46,4 +46,6 @@
    :file-ext-in "jnlp"
    :file-ext-out "xidv"})
 
+(io/make-parents (str (:out-dir my-config) "foo")) ;;kludge
+
 (process my-config)

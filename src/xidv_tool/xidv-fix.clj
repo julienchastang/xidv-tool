@@ -23,6 +23,9 @@
             (recur (zip/next new-loc))))
         (recur (zip/next loc))))))
 
+
+(def fs (re-pattern java.io.File/separator))
+
 (defn match-fn
   "Generate a match function based on string"
   [s]
@@ -38,7 +41,7 @@
 (defn datadir-editor
   "Edit out currrent data and replace with /tmp/data/ dir"
   [node]
-  (let [filename (last (s/split node #"/"))]
+  (let [filename (last (s/split node fs))]
     (str "/tmp/data/" filename)))
 
 (defn motherlode-editor
@@ -48,9 +51,7 @@
         domain (nth parts 2)]
     (.replace node domain "thredds.ucar.edu")))
 
-(def my-files (u/list-files "/Users/chastang/Desktop/jnlps/" "xidv"))
-
-(defn fix-xidv
+(defn process
   "fix xidvs"
   [files dest]
   (doseq [f files]
@@ -62,8 +63,17 @@
                 (tree-edit match-datadir? datadir-editor)              
                 (xml/emit-str) (u/ppxml))
           o (str dest
-                 (-> f (.getAbsolutePath) (s/split #"/") last s/trim))]
+                 (-> f (.getAbsolutePath) (s/split fs) last s/trim))]
       (spit o s))))
 
 ;; for example
-(fix-xidv my-files "/tmp/qwerty/")
+
+(def my-config
+  {:in-dir "/tmp/xidvs/"
+   :file-ext-in "xidv"
+   :out-dir "/tmp/xidvs-clean/"})
+
+(io/make-parents (str (:out-dir my-config) "foo")) ;;kludge
+
+(process (u/list-files (:in-dir my-config) (:file-ext-in my-config))
+         (:out-dir my-config))
